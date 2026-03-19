@@ -141,7 +141,7 @@ graph TD
 The project is divided into two distinct approaches. The user must choose which path to follow (or test both for comparison).
 
 
->Path A: Neural Networks Approach (Few-Shot Learning)
+>Path A: Neural Networks Approach (Few Shot Learning model)
 
 If the goal is to use similarity-based Artificial Intelligence:
 
