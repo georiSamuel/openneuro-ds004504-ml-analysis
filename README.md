@@ -13,6 +13,20 @@ This project establishes a pipeline to clean the raw EEG signals and evaluates t
 ## Dataset
 The dataset utilized in this project is the **OpenNeuro ds004504**, originally presented in the article *"A Dataset of Scalp EEG Recordings of Alzheimer's Disease, Frontotemporal Dementia and Healthy Subjects from Routine EEG"*.
 
+### Characteristics
+* **Participants:** 88 subjects (36 AD, 23 FTD, 29 controls).
+* **Equipment:** Recordings were acquired using a Nihon Kohden 2100 clinical device.
+* **Recording Protocol:** 19 scalp electrodes were placed according to the 10-20 international system, along with 2 mastoid reference electrodes (A1 and A2). The sampling rate was 500 Hz with a 10 µV/mm resolution.
+* **Procedure:** Participants were seated in a resting state with their eyes closed.
+* **Duration:** Average recording durations were 13.5 minutes for AD, 12 minutes for FTD, and 13.8 minutes for the healthy control group.
+
+### Original Preprocessing
+*Note: The BIDS-compliant dataset provided by the authors has already undergone a rigorous baseline preprocessing pipeline.*
+* **Filtering & Re-referencing:** A Butterworth band-pass filter (0.5–45 Hz) was applied, and the signals were re-referenced to the A1-A2 average.
+* **Artifact Correction:** Artifact Subspace Reconstruction (ASR) was utilized to remove bad data segments exceeding a 0.5-second window standard deviation of 17.
+* **ICA Denoising:** RunICA was performed to extract components. Components classified as eye or jaw artifacts by EEGLAB's ICLabel routine were automatically excluded.
+
+### Download
 Due to the large file sizes typical of EEG recordings, the data is **not** hosted in this repository. You must download it locally before running the scripts. 
 
 You can download the dataset via Kaggle (requires a Kaggle account):
