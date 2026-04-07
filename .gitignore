@@ -1,3 +1,15 @@
+
+# Ignore everything inside the data folders
+data/raw/*
+data/processed/*
+
+# But DO NOT ignore the .gitkeep files (the exclamation mark acts as an exception)
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+
+# ------------------------------------------------------------------------------------------ #
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
