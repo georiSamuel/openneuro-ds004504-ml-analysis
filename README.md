@@ -1,90 +1,88 @@
-# EEG Dementia Dataset Analysis
+# EEG Dementia Classification — Experimental Branch (295 Features)
+
+> **⚠️ Experimental Branch**  
+> This branch contains the **second iteration** of feature engineering, expanding the original 105‑feature set to **295 features** by adding spectral entropy, Hjorth parameters, and normalized RMS.  
+> **These additions did not improve overall classification performance**—in fact, the best model from the first iteration (Logistic Regression) saw a ~3% drop in accuracy.  
+> The primary (`main`) branch retains the **105‑feature pipeline** (RBP + PLV) which achieved the highest subject‑wise accuracy (~53.7%).  
+> This branch is kept for **reference, ablation studies, and transparency**.
+
+---
 
 ## Objective
-The primary goal of this repository is to perform preprocessing and machine learning classification on resting-state EEG recordings of individuals with Alzheimer's Disease (AD), Frontotemporal Dementia (FTD), and healthy controls. 
 
-This project establishes a pipeline to clean the raw EEG signals and evaluates the performance of classical machine learning algorithms on this dataset. The models implemented and tested in this repository include:
-* K-Nearest Neighbors (KNN)
-* Decision Tree
-* Support Vector Machine (SVM)
-* Logistic Regression
-* Linear Discriminant Analysis (LDA)
+To test whether incorporating advanced EEG features—spectral entropy, Hjorth mobility/complexity, and normalized RMS—improves the classification of Alzheimer's Disease (AD), Frontotemporal Dementia (FTD), and healthy controls (CN) under strict subject‑wise cross‑validation.
 
-## Dataset
-The dataset utilized in this project is the **OpenNeuro ds004504**, originally presented in the article *"A Dataset of Scalp EEG Recordings of Alzheimer's Disease, Frontotemporal Dementia and Healthy Subjects from Routine EEG"*.
+---
 
-### Characteristics
-* **Participants:** 88 subjects (36 AD, 23 FTD, 29 controls).
-* **Equipment:** Recordings were acquired using a Nihon Kohden 2100 clinical device.
-* **Recording Protocol:** 19 scalp electrodes were placed according to the 10-20 international system, along with 2 mastoid reference electrodes (A1 and A2). The sampling rate was 500 Hz with a 10 µV/mm resolution.
-* **Procedure:** Participants were seated in a resting state with their eyes closed.
-* **Duration:** Average recording durations were 13.5 minutes for AD, 12 minutes for FTD, and 13.8 minutes for the healthy control group.
+## What Was Added (Second Iteration)
 
-### Original Preprocessing
-*Note: The BIDS-compliant dataset provided by the authors has already undergone a rigorous baseline preprocessing pipeline.*
-* **Filtering & Re-referencing:** A Butterworth band-pass filter (0.5–45 Hz) was applied, and the signals were re-referenced to the A1-A2 average.
-* **Artifact Correction:** Artifact Subspace Reconstruction (ASR) was utilized to remove bad data segments exceeding a 0.5-second window standard deviation of 17.
-* **ICA Denoising:** RunICA was performed to extract components. Components classified as eye or jaw artifacts by EEGLAB's ICLabel routine were automatically excluded.
+Building on the baseline of 95 Relative Band Power (RBP) features and 10 Phase Locking Value (PLV) connectivity features, we added:
 
-### Download
-Due to the large file sizes typical of EEG recordings, the data is **not** hosted in this repository. You must download it locally before running the scripts. 
+| Feature Group | Description | Count |
+| :--- | :--- | :---: |
+| **Spectral Entropy** | Normalized Shannon entropy of the PSD, computed per frequency band (δ, θ, α, β, γ) and globally (0.5–45 Hz). | 19 × 6 = 114 |
+| **Hjorth Parameters** | Activity (variance), Mobility (mean frequency estimate), and Complexity (bandwidth indicator) computed in the time domain. | 19 × 3 = 57 |
+| **Normalized RMS** | Root‑mean‑square amplitude divided by standard deviation, reducing inter‑subject gain variability. | 19 × 1 = 19 |
 
-You can download the dataset via Kaggle (requires a Kaggle account):
-* **Web Link:** [EEG Dementia Dataset on Kaggle](https://www.kaggle.com/datasets/thngdngvn/openneuro-ds004504)
-* **Kaggle CLI Command:**
-  ```bash
-  kaggle datasets download -d thngdngvn/openneuro-ds004504
-  ```
-Once downloaded, extract the contents into the `data/raw/` directory of this project.
+**Total features per epoch: 95 (RBP) + 10 (PLV) + 114 + 57 + 19 = 295**
 
-## Setup & Dependencies
+---
 
-To ensure reproducibility and avoid conflicts, it is recommended to use a virtual environment.
+## Results
 
-### Prerequisites
-* Python 3.8+
-* [Git LFS](https://git-lfs.com/) (Recommended for tracking any large model weights or processed `.set`/`.edf` files)
+### Nested Cross‑Validation Performance
 
-### Installation
-1. Clone the repository:
-   ```bash
-   git clone [https://github.com/your-username/eeg-dementia-dataset-analysis.git](https://github.com/your-username/eeg-dementia-dataset-analysis.git)
-   cd eeg-dementia-dataset-analysis
-   ```
+![Nested CV Accuracy Results](results/nestedCV-accuracy.png)
 
-2. Create and activate a virtual environment:
-   ```bash
-   python -m venv venv
-   # On Windows:
-   venv\Scripts\activate
-   # On Linux/Mac:
-   source venv/bin/activate
-   ```
+> *Training and scoring took approximately **65 minutes** with Nested CV.*
 
-3. Install the required dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+| Model | Accuracy (105‑feat baseline) | Accuracy (295‑feat) | Δ Accuracy |
+| :--- | :---: | :---: | :---: |
+| **LDA** | 0.5234 | **0.5300** | **+0.0066** |
+| **SVM** | 0.5125 | **0.5252** | **+0.0127** |
+| **Logistic Regression** | **0.5368** | 0.5070 | –0.0298 |
+| **KNN** | 0.4666 | 0.4618 | –0.0048 |
+| **Decision Tree** | 0.4531 | **0.4687** | **+0.0156** |
 
-## Repository Structure
+### Model Comparison Chart
 
-```text
-eeg-dementia-dataset-analysis/
-├── data/
-│   ├── raw/                       # Place the Kaggle downloaded files here (ignored by git)
-│   └── processed/                 # Cleaned/epoched EEG data and extracted features
-|
-├── notebooks/                     # Jupyter notebooks for Exploratory Data Analysis (EDA)
-│   ├── 01_preprocessing.ipynb     # Scripts for filtering, artifact removal, and epoching
-|   ├── 02_models_training.ipynb   # ML model training scripts
-│   └── 03_tests_results.ipynb     # Presentation of test results using graphics
-│  
-├── .gitattributes                 # Git LFS tracking rules for large data/model files
-├── .gitignore                     # Ignored files (e.g., /data/raw, /venv, .env)
-├── requirements.txt               # Python dependencies
-└── README.md                      # Project documentation
-```
+![Model Comparison](results/model_comparison.png)
 
-## References
-* **Original Article:** Miltiadous, A.; Tzimourta, K.D., Afrantou, T.; Ioannidis, P.; Grigoriadis, N.; Tsalikakis, D.G.; Angelidis, P.; Tsipouras, M.G.; Glavas, E., Giannakeas, N.; et al. *A Dataset of Scalp EEG Recordings of Alzheimer's Disease, Frontotemporal Dementia and Healthy Subjects from Routine EEG.* Data 2023, 8, 95. [https://www.mdpi.com/2306-5729/8/6/95](https://www.mdpi.com/2306-5729/8/6/95)
-* **Inspiration Repo:** [JonathanReyess/eeg-dementia-ml](https://github.com/JonathanReyess/eeg-dementia-ml)
+- **LDA** became the best model at 53.0% accuracy (macro F1 = 0.452), marginally outperforming the 105‑feature baseline.
+- **Logistic Regression**, the previous leader, dropped by ~3 percentage points, likely due to overfitting on redundant or noisy features.
+- **SVM** and **Decision Tree** showed small gains, but the overall macro F1 scores remained below the best 105‑feature results.
+
+---
+
+## Why Did Performance Not Improve?
+
+1. **Curse of Dimensionality:** With 295 features and ~28,000 training epochs per fold, the risk of overfitting increased substantially—especially for linear models like Logistic Regression.
+2. **Feature Redundancy:** Many of the new features are highly correlated with existing RBP features (e.g., band‑specific entropy inversely tracks band power). The `SelectKBest` step (with `k` tuned in [100,150,200]) may not have been aggressive enough.
+3. **Dataset Limitations:** The OpenNeuro ds004504 dataset is inherently challenging due to inter‑subject variability and clinical overlap between AD and FTD. Advanced features, while neurophysiologically plausible, did not add sufficient discriminative power.
+4. **Hyperparameter Sensitivity:** The hyperparameter grids were originally designed for 105 features; a broader search might be required for the expanded set.
+
+---
+
+## Conclusion
+
+**Adding spectral entropy, Hjorth parameters, and normalized RMS did not yield a net improvement in subject‑wise classification accuracy.**  
+The leaner **105‑feature pipeline (RBP + PLV)** remains the optimal configuration, achieving **53.7% accuracy** with Logistic Regression under honest, leakage‑free validation.
+
+This experiment underscores a key principle in biomedical machine learning: **more features do not automatically mean better performance**—especially when rigorous subject‑wise evaluation is enforced.
+
+---
+
+## Branch Comparison
+
+| Criterion | `main` (105 features) | `experiment/295-features` (this branch) |
+| :--- | :---: | :---: |
+| Best Accuracy | **0.5368** (Logistic Regression) | 0.5300 (LDA) |
+| Best Macro F1 | **0.4639** (Logistic Regression) | 0.4520 (LDA) |
+| Total Features | 105 | 295 |
+| Preprocessing Time | ~30–60 min | ~1–2 hours |
+| Nested CV Runtime | ~35–45 min | ~60–70 min |
+
+---
+
+
+> **Note:** The code in this branch is fully functional and can be reused for other EEG datasets or further feature engineering explorations.
