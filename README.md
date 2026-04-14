@@ -165,7 +165,7 @@ To build a clinically meaningful classifier, we enhanced the initial RBP‑only 
 
 #### Overall Result
 
-![Nested CV Accuracy Results](/assets/results/nestedCV-accuracy.png)
+![Nested CV Accuracy Results](/results/nestedCV-accuracy.png)
 
 > Taking approximately 36 minutes for training estimation and scoring (with Nested CV).
 
@@ -190,7 +190,7 @@ All models showed slight improvement:
 
 The Receiver Operating Characteristic (ROC) curves and corresponding Area Under the Curve (AUC) values provide a threshold‑independent view of each model's discriminative power across the three classes.
 
-![ROC-AUC Curves](/assets/results/roc_auc_curves.png)
+![ROC-AUC Curves](/results/roc_auc_curves.png)
 
 - **Logistic Regression** achieved the highest macro‑averaged AUC (0.672), closely followed by SVM (0.671) and LDA (0.648).
 - The **FTD class** consistently shows the lowest AUC (around 0.545 across models), confirming it as the most challenging diagnosis to distinguish from the others.
@@ -200,7 +200,7 @@ The Receiver Operating Characteristic (ROC) curves and corresponding Area Under 
 
 The bar chart below summarizes the macro‑averaged metrics (Accuracy, Precision, Recall, F1 Macro) for all five classifiers.
 
-![Performance Comparison](/assets/results/performance_comparison.png)
+![Performance Comparison](/results/performance_comparison.png)
 
 - **Logistic Regression** leads in Accuracy (0.539), Precision (0.506), Recall (0.494), and F1 Macro (0.489).
 - **LDA** follows closely, with an accuracy of 0.523 and F1 Macro of 0.439.
@@ -224,7 +224,7 @@ The dashed gray line represents the random‑guess baseline (33.3% for a 3‑cla
 
 ### Why is the F1‑Score for FTD Consistently Low?
 
-![Per‑Class F1 Heatmap](/assets/results/f1_per_class_heatmap.png)
+![Per‑Class F1 Heatmap](/results/f1_per_class_heatmap.png)
 
 The heatmap reveals that **Frontotemporal Dementia (FTD) is the most challenging class to classify**, with F1‑scores ranging from ~0.12 to 0.25 across models. This is not a flaw in the pipeline, but rather a reflection of **neurophysiological and dataset‑specific factors**:
 
@@ -269,7 +269,7 @@ The heatmap reveals that **Frontotemporal Dementia (FTD) is the most challenging
 
 ### The Near Difference Between Out‑of‑Fold and Nested CV Results
 
-![OOF vs Nested CV Comparison](/assets/results/oof_vs_cv_comparison.png)
+![OOF vs Nested CV Comparison](/results/oof_vs_cv_comparison.png)
 
 The out‑of‑fold metrics obtained here should closely match the nested cross‑validation scores saved from Notebook 02. We load the `cv_summary.csv` file and compare the two sets of estimates to ensure consistency.
 
