@@ -101,6 +101,33 @@ openneuro-ds004504-ml-analysis/
 |
 └── README.md                     
 ```
+## Methodology
+
+The project is organized into three sequential Jupyter notebooks that form a complete machine learning pipeline for EEG‑based dementia classification. The workflow is designed to **prevent data leakage** and provide **clinically realistic performance estimates**.
+
+### Step‑by‑Step Overview
+
+| Notebook | Purpose |
+| :--- | :--- |
+| **`01_preprocessing.ipynb`** | Loads the pre‑cleaned EEG recordings (OpenNeuro ds004504), divides them into 4‑second epochs (50% overlap), and extracts **105 features per epoch**: 95 Relative Band Power (RBP) features across five frequency bands (δ, θ, α, β, γ) and 10 Phase Locking Value (PLV) connectivity features from clinically relevant channel pairs. The final feature matrix is saved as `eeg_rbp_features.csv`. |
+| **`02_models_training.ipynb`** | Loads the feature matrix and trains five classical classifiers (KNN, Decision Tree, SVM, Logistic Regression, LDA) using **subject‑wise nested cross‑validation**: <br> • **Outer loop (5‑fold `GroupKFold`)** ensures that all epochs of a single subject stay together, estimating generalization performance on unseen subjects. <br> • **Inner loop (3‑fold `GroupKFold`)** performs hyperparameter tuning (including feature selection via `SelectKBest`) strictly on the outer training folds. <br> After obtaining unbiased performance estimates, the best pipeline configuration is retrained on the **entire dataset** and saved for deployment. |
+| **`03_tests_results.ipynb`** | Generates **out‑of‑fold predictions** by re‑fitting the optimal models on each outer training split (without re‑tuning). These unbiased predictions are used to create: <br> • Confusion matrices (normalized with absolute counts) <br> • ROC‑AUC curves (one‑vs‑rest) <br> • Comparative bar charts of macro‑averaged metrics <br> • Per‑class F1‑score heatmaps <br> The results are cross‑checked with the nested CV summary from Notebook 02 to confirm consistency. |
+
+### Pipeline Diagram
+
+```mermaid
+flowchart TD
+    A["Raw EEG Data<br/>(.set files)"] --> B["Feature Extraction<br/>(RBP + PLV)"]
+    B --> C["Feature Matrix<br/>(CSV)"]
+    C --> D["Subject‑Wise Split<br/>(GroupKFold)"]
+    D --> E["Model Training<br/>+ Hyperparameter Tuning"]
+    E --> F["Nested Cross‑Validation"]
+    F --> G["Final Model<br/>(.joblib)"]
+    C --> H["Out‑of‑Fold Predictions"]
+    G --> H
+    H --> I["Performance Metrics<br/>& Visualizations"]
+```
+
 
 ## Results
 
