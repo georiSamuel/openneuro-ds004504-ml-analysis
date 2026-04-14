@@ -68,20 +68,38 @@ To ensure reproducibility and avoid conflicts, it is recommended to use a virtua
 ## Repository Structure
 
 ```text
-eeg-dementia-dataset-analysis/
-├── data/
-│   ├── raw/                       # Place the Kaggle downloaded files here (ignored by git)
-│   └── processed/                 # Cleaned/epoched EEG data and extracted features
+openneuro-ds004504-ml-analysis/
 |
-├── notebooks/                     # Jupyter notebooks for Exploratory Data Analysis (EDA)
-│   ├── 01_preprocessing.ipynb     # Scripts for filtering, artifact removal, and epoching
-|   ├── 02_models_training.ipynb   # ML model training scripts
-│   └── 03_tests_results.ipynb     # Presentation of test results using graphics
-│  
-├── .gitattributes                 # Git LFS tracking rules for large data/model files
-├── .gitignore                     # Ignored files (e.g., /data/raw, /venv, .env)
-├── requirements.txt               # Python dependencies
-└── README.md                      # Project documentation
+├── data/
+│   ├── raw/                       # Raw ds004504 data from Kaggle (git-ignored)
+│   └── processed/                 # Artifacts generated during the pipeline
+│       └── models/                # Trained and serialized models
+|
+|
+├── notebooks/                     # Experimental research pipeline
+│   ├── 01_preprocessing.ipynb     # Epoching (4s), RBP extraction, and PLV connectivity
+│   ├── 02_models_training.ipynb   # Nested CV training and hyperparameter optimization
+│   └── 03_tests_results.ipynb     # Out-of-fold evaluation and clinical metrics generation
+│
+|
+├── results/                       # Visualizations and performance plots
+│   ├── f1_per_class_heatmap.png
+│   ├── nestedCV-accuracy.png
+│   ├── oof_vs_cv_comparison.png
+│   ├── performance_comparison.png
+│   └── roc_auc_curves.png
+│
+|
+├── .gitignore                     
+|
+|
+├── LICENSE           
+| 
+|            
+├── requirements.txt               # Dependencies (MNE, Scikit-Learn, etc.)
+|
+|
+└── README.md                     
 ```
 
 ## Results
