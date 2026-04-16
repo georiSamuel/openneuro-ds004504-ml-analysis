@@ -137,12 +137,6 @@ To build a clinically meaningful classifier, we enhanced the initial RBP‑only 
 
 #### 1. Functional Connectivity (Phase Locking Value – PLV)
 
-**What is it and how was it implemented?**
-
-- **Definition:** Phase Locking Value (PLV) quantifies the consistency of the phase difference between two oscillatory signals over time. It ranges from 0 (no synchrony) to 1 (perfect synchrony).
-- **Implementation:** In the preprocessing notebook, after extracting Relative Band Power (RBP), we added a function that computes PLV for 10 specific channel pairs (fronto‑temporal and fronto‑parietal connections, the most relevant in the literature) within each 4‑second epoch. This generated 10 new features per epoch, increasing the total from 95 to 105 features.
-
-**Why was it added?**
 
 - **Limitation of RBP:** Spectral power (RBP) measures the **local** activity of each electrode but does not inform how different brain regions **communicate**. In neurodegenerative diseases like Alzheimer's and Frontotemporal Dementia, functional disconnection between regions (e.g., reduced synchrony between frontal and posterior areas) is a well‑established biomarker.
 - **Objective:** Capture this network dysfunction, providing the model with information about the integrity of neural connections.
@@ -155,13 +149,6 @@ To build a clinically meaningful classifier, we enhanced the initial RBP‑only 
 
 #### 2. Feature Selection (SelectKBest within the Pipeline)
 
-**What is it and how was it implemented?**
-
-- **Definition:** `SelectKBest` is a univariate feature selection method that evaluates each feature individually (using ANOVA F‑value) and retains only the top `k` scoring features.
-- **Implementation:** Selection was embedded **inside the pipeline** of each model, immediately after standardization (`StandardScaler`). The value of `k` was fixed at 50 (though the hyperparameter grid tested `k = 30, 50, 70`). This means that for each training fold, the model discards the least informative features **before** training the classifier.
-
-**Why was it added?**
-
 - **Curse of Dimensionality:** With 105 features and ~28,000 training samples per fold, the risk of overfitting is high. Many features may be redundant or noisy.
 - **Generalization:** By eliminating irrelevant features, the model becomes simpler and tends to generalize better to new subjects.
 - **Prevention of Data Leakage:** Selection is performed **within each cross‑validation fold**, using only the training data of that fold. This ensures that the choice of features is not influenced by the test data.
@@ -172,15 +159,6 @@ To build a clinically meaningful classifier, we enhanced the initial RBP‑only 
 - **Interpretation:** The combination of `SelectKBest` with Nested CV ensured that the model not only learned, but learned from the **right features**, resulting in more stable and realistic validation metrics.
 
 #### 3. Nested Cross‑Validation
-
-**What is it and how was it implemented?**
-
-- **Definition:** Nested CV consists of two cross‑validation loops:
-    1. **Outer Loop (`GroupKFold`, 5 folds):** Splits subjects into 5 parts. Each part is used once as a test set while the other 4 are used for training. This estimates the final model performance.
-    2. **Inner Loop (`StratifiedKFold`, 3 folds):** Within each outer training fold, the data is split again to search for the best hyperparameters (e.g., SVM `C`, `k` for `SelectKBest`) using `GridSearchCV`.
-- **Implementation:** We replaced the simple `cross_validate` with the nested loop, ensuring that hyperparameter optimization **never sees** the subjects of the outer test fold.
-
-**Why was it added?**
 
 - **Selection Bias:** If we optimize hyperparameters using the entire dataset (or a single validation split) and then report accuracy on the test set, we are **leaking information** from the test set into the parameter choice. This artificially inflates metrics.
 - **Scientific Honesty:** Nested CV provides an **unbiased estimate** of the model's ability to generalize to completely new patients. It is the gold standard in machine learning studies applied to healthcare.
@@ -206,12 +184,10 @@ All models showed slight improvement:
 | KNN | 0.4397 | 0.4666 | +0.0269 |
 | Decision Tree | 0.4366 | 0.4531 | +0.0165 |
 
-**What improved and why:**
+**What improved**
 
 - Logistic Regression gained the most (+3.4 points) — linear models benefit more from connectivity features (PLV) because these features capture inter‑channel relationships that isolated spectral features do not. LR can directly weight these relationships.
-- LDA remained practically unchanged (+0.09%) — expected, because LDA assumes all classes share the same covariance structure, which is rarely true in EEG connectivity data.
-
-**The overall result remains within the expected range** — 50–54% for 3 classes with subject‑wise CV is honest and publishable. Many papers reporting 90%+ on this dataset have subject leakage.
+- LDA remained practically unchanged (+0.09%) — expected, because LDA assumes all classes share the same covariance structure, which is rarely true in EEG connectivity data.e.
 
 ### ROC‑AUC Analysis
 
@@ -243,7 +219,6 @@ The dashed gray line represents the random‑guess baseline (33.3% for a 3‑cla
 | **Feature Selection** | Reduces dimensionality and overfitting | Improves robustness and generalization, especially in noise‑sensitive models |
 | **Nested CV** | Ensures honest performance estimation | Confers scientific credibility to scores, without artificially inflating them |
 
-**Conclusion:** The three changes act in synergy. Functional connectivity enriches the data, feature selection filters noise, and Nested CV ensures reliable evaluation. The final result is a more powerful, transparent, and clinically relevant pipeline for diagnosing dementia from EEG.
 
 ---
 
@@ -285,12 +260,6 @@ The heatmap reveals that **Frontotemporal Dementia (FTD) is the most challenging
 
 - Our current feature set (Relative Band Power + PLV on 10 pairs) may be **suboptimal for FTD**.
 - FTD often presents with **asymmetric frontal slowing** and **reduced long‑range fronto‑temporal connectivity**. Features that explicitly capture **inter‑hemispheric asymmetry** or **gradients of slowing** might be necessary to better separate FTD from AD.
-
-#### Suggested Mitigations (Future Work)
-
-- **Data‑level:** Apply **SMOTE** or **class‑weighted loss functions** to compensate for imbalance.
-- **Feature‑level:** Compute **asymmetry indices** (e.g., left vs. right frontal power ratios) and **anterior‑posterior gradients**.
-- **Model‑level:** Use **hierarchical classification** (first distinguish Dementia vs. Control, then AD vs. FTD) or **ordinal regression** if disease severity scores are available.
 
 ---
 
